@@ -4,7 +4,7 @@
 
 ---
 
-## 📋 Project Overview
+## Project Overview
 
 An automated data analytics pipeline that processes Syracuse's 311 service request data to provide actionable insights for city officials, neighborhood associations, and residents. The system includes four advanced analytical capabilities: anomaly detection, predictive response time modeling, neighborhood comparison analysis, and seasonal pattern identification.
 
@@ -27,20 +27,20 @@ A production-ready data pipeline that:
 
 ---
 
-## 🎯 Key Features (Planned)
+## Key Features (Planned)
 
-### ✅ Completed (Week 1)
+### Completed (Week 1)
 - [x] ArcGIS REST API client for data extraction
 - [x] Raw data preservation architecture
 - [x] Metadata tracking system
 - [x] Professional project structure
 
-### 🔄 In Progress (Week 2)
+### In Progress (Week 2)
 - [ ] Data cleaning pipeline
 - [ ] Data validation framework
 - [ ] ETL orchestration
 
-### 📅 Upcoming (Weeks 3-9)
+### Upcoming (Weeks 3-9)
 - [ ] **Enhancement #1:** Anomaly Detection (statistical methods)
 - [ ] **Enhancement #2:** Predictive Response Time Model (regression)
 - [ ] **Enhancement #3:** Neighborhood Comparison Analysis (geospatial)
@@ -50,7 +50,7 @@ A production-ready data pipeline that:
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### Data Flow
 ```
@@ -82,7 +82,7 @@ Visualization Dashboard (Streamlit)
 
 ---
 
-## 📊 Dataset Information
+## Dataset Information
 
 **Source:** Syracuse Open Data Portal  
 **Dataset:** SYRCityline Requests (2021-Present)  
@@ -108,7 +108,7 @@ Visualization Dashboard (Streamlit)
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Python 3.11 or higher
@@ -165,7 +165,7 @@ cat sample_raw_data_metadata.json
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 syracuse-311-analytics/
@@ -211,25 +211,25 @@ syracuse-311-analytics/
 
 ---
 
-## 📈 Timeline
+## Timeline
 
 | Week | Dates | Focus | Status |
 |------|-------|-------|--------|
-| 1 | Dec 30-Jan 5 | Infrastructure Setup | ✅ Complete |
-| 2 | Jan 6-12 | Data Cleaning Pipeline | 🔄 In Progress |
-| 3 | Jan 13-19 | Core Analytics | 📅 Planned |
-| 4 | Jan 20-26 | Anomaly Detection | 📅 Planned |
-| 5 | Jan 27-Feb 2 | Predictive Modeling | 📅 Planned |
-| 6 | Feb 3-9 | Neighborhood Analysis | 📅 Planned |
-| 7 | Feb 10-16 | Seasonal Patterns | 📅 Planned |
-| 8 | Feb 17-23 | Dashboard Development | 📅 Planned |
-| 9 | Feb 24-28 | Documentation & Polish | 📅 Planned |
+| 1 | Dec 30-Jan 5 | Infrastructure Setup | Complete |
+| 2 | Jan 6-12 | Data Cleaning Pipeline | In Progress |
+| 3 | Jan 13-19 | Core Analytics | Planned |
+| 4 | Jan 20-26 | Anomaly Detection | Planned |
+| 5 | Jan 27-Feb 2 | Predictive Modeling | Planned |
+| 6 | Feb 3-9 | Neighborhood Analysis | Planned |
+| 7 | Feb 10-16 | Seasonal Patterns | Planned |
+| 8 | Feb 17-23 | Dashboard Development | Planned |
+| 9 | Feb 24-28 | Documentation & Polish | Planned |
 
 **Project Deadline:** February 28, 2025
 
 ---
 
-## 🔍 Data Quality Considerations
+## Data Quality Considerations
 
 From initial exploration, we've identified these data quality issues to address in the cleaning pipeline:
 
@@ -241,7 +241,7 @@ From initial exploration, we've identified these data quality issues to address 
 
 ---
 
-## 📝 Development Principles
+## Development Principles
 
 - **Raw Data is Sacred:** Never modify original data; all transformations are documented
 - **Reproducibility:** All analysis can be re-run from raw data
@@ -252,7 +252,7 @@ From initial exploration, we've identified these data quality issues to address 
 
 ---
 
-## 🎓 Skills Demonstrated
+## Skills Demonstrated
 
 - **Data Engineering:** ETL pipeline design, data validation, schema management
 - **API Integration:** REST API consumption, pagination, error handling
@@ -268,13 +268,13 @@ For questions or collaboration opportunities, please contact via GitHub.
 
 ---
 
-## 📄 License
+## License
 
 This project is developed for academic and civic purposes as part of the Syracuse Open Data initiative.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Syracuse Open Data Portal for providing public dataset access
 - City of Syracuse Office of Accountability, Performance and Innovation

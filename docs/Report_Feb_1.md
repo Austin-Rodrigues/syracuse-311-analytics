@@ -1,7 +1,6 @@
 # Technical Progress Report: Syracuse 311 Predictive Analytics
 **Project Title:** Real-Time Analytics and Predictive Modeling for Syracuse CityLine  
-**Academic Institution:** Syracuse University - Research  
-**Reporting Period:** February 3 – February 4, 2026  
+**Academic Institution:** Syracuse University - Research    
 **Phase:** Machine Learning Model Development & Deployment
 
 ---

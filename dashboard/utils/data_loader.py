@@ -11,20 +11,26 @@ def load_gold_neighborhoods():
     
     query = """
     SELECT 
-        Neighborhood,
-        Total_Requests,
-        Closed_Requests,
-        Avg_Response_Hours,
-        Median_Response_Hours,
-        Resolution_Rate,
-        Avg_Minutes_to_Acknowledge
+        neighborhood,
+        total_requests,
+        avg_response_hours,
+        percent_closed
     FROM workspace.syracuse_project.gold_neighborhood_performance
-    ORDER BY Total_Requests DESC
+    ORDER BY total_requests DESC
     """
     
     connector = DatabricksConnector()
     df = connector.query(query)
     connector.close()
+    
+    if df is not None:
+        # Rename columns to match app expectations (Title Case)
+        df = df.rename(columns={
+            'neighborhood': 'Neighborhood',
+            'total_requests': 'Total_Requests',
+            'avg_response_hours': 'Avg_Response_Hours',
+            'percent_closed': 'Resolution_Rate'
+        })
     
     return df
 
@@ -92,13 +98,6 @@ def load_temporal_patterns():
     connector.close()
     
     return df
-
-@st.cache_data(ttl=3600)
-def load_neighborhood_geojson():
-    """Load neighborhood boundaries (if available)"""
-    
-    # For now, return None - we'll add this if you have GeoJSON
-    return None
 
 def execute_custom_query(sql_query: str) -> pd.DataFrame:
     """

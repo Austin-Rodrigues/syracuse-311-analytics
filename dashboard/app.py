@@ -36,8 +36,7 @@ st.markdown("""
 
 # Sidebar
 with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Seal_of_Syracuse%2C_New_York.svg/200px-Seal_of_Syracuse%2C_New_York.svg.png", width=150)
-    st.title("Syracuse 311")
+    st.title("🏙️ Syracuse 311")
     st.markdown("### Real-Time Analytics Dashboard")
     st.markdown("---")
     
@@ -47,8 +46,8 @@ with st.sidebar:
         st.rerun()
     
     st.markdown("---")
-    st.caption("Data updated: March 1, 2026")
-    st.caption("Source: Syracuse Open Data Portal")
+    st.caption("Data Source: Syracuse Open Data Portal")
+    st.caption("Connected to: Databricks Unity Catalog")
 
 # Main content
 st.title("🏙️ Syracuse 311 Service Request Analytics")
@@ -57,14 +56,21 @@ st.markdown("**Real-time insights into municipal service delivery**")
 # Load data
 with st.spinner("Loading data from Databricks..."):
     df_neighborhoods = load_gold_neighborhoods()
-    df_trends = load_request_trends()
-    df_categories = load_category_distribution()
-    df_temporal = load_temporal_patterns()
 
 # Check if data loaded successfully
-if df_neighborhoods is None:
-    st.error("❌ Failed to connect to Databricks. Please check your credentials in `.streamlit/secrets.toml`")
+if df_neighborhoods is None or df_neighborhoods.empty:
+    st.error("❌ Failed to load data from Databricks.")
+    st.info("**Troubleshooting:**")
+    st.code("""
+# Check your .streamlit/secrets.toml file:
+[databricks]
+host = "adb-xxxxx.azuredatabricks.net"
+http_path = "/sql/1.0/warehouses/xxxxx"
+token = "dapixxxxx"
+    """)
     st.stop()
+
+st.success("✅ Connected to Databricks!")
 
 # KPI Row
 st.markdown("### 📊 Key Performance Indicators")
@@ -80,7 +86,7 @@ with col2:
 
 with col3:
     avg_resolution = df_neighborhoods['Resolution_Rate'].mean()
-    st.metric("Resolution Rate", f"{avg_resolution:.1%}")
+    st.metric("Avg Resolution Rate", f"{avg_resolution:.1%}")
 
 with col4:
     neighborhoods = len(df_neighborhoods)
@@ -89,14 +95,16 @@ with col4:
 st.markdown("---")
 
 # Tabs
-tab1, tab2, tab3, tab4 = st.tabs(["📊 Overview", "📍 Neighborhoods", "📈 Trends", "🤖 AI Assistant"])
+tab1, tab2, tab3 = st.tabs(["📊 Overview", "📍 Neighborhoods", "🤖 AI Assistant"])
 
 # TAB 1: OVERVIEW
 with tab1:
+    st.subheader("📍 Neighborhood Performance")
+    
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("📍 Top 10 Neighborhoods by Request Volume")
+        st.markdown("**Top 10 by Request Volume**")
         fig_neighborhoods = px.bar(
             df_neighborhoods.head(10),
             x='Total_Requests',
@@ -110,40 +118,31 @@ with tab1:
         st.plotly_chart(fig_neighborhoods, use_container_width=True)
     
     with col2:
-        st.subheader("🏷️ Top Request Categories")
-        fig_categories = px.bar(
-            df_categories,
-            x='request_count',
-            y='Category',
-            orientation='h',
-            color='avg_response_hours',
-            color_continuous_scale='Viridis',
-            labels={'avg_response_hours': 'Avg Response (hrs)', 'request_count': 'Count'}
+        st.markdown("**Response Time Distribution**")
+        fig_response = px.box(
+            df_neighborhoods,
+            y='Avg_Response_Hours',
+            points='all',
+            labels={'Avg_Response_Hours': 'Response Time (hours)'}
         )
-        fig_categories.update_layout(height=400, yaxis={'categoryorder':'total ascending'})
-        st.plotly_chart(fig_categories, use_container_width=True)
+        fig_response.update_layout(height=400, showlegend=False)
+        st.plotly_chart(fig_response, use_container_width=True)
     
-    # Time series
-    st.subheader("📈 Request Volume Over Time")
-    fig_trends = go.Figure()
-    fig_trends.add_trace(go.Scatter(
-        x=df_trends['date'],
-        y=df_trends['request_count'],
-        mode='lines',
-        name='Daily Requests',
-        line=dict(color='steelblue', width=2)
-    ))
-    fig_trends.update_layout(
-        xaxis_title="Date",
-        yaxis_title="Number of Requests",
-        hovermode='x unified',
-        height=350
+    # Summary table
+    st.subheader("📋 All Neighborhoods")
+    st.dataframe(
+        df_neighborhoods.style.format({
+            'Total_Requests': '{:,.0f}',
+            'Avg_Response_Hours': '{:.1f}',
+            'Resolution_Rate': '{:.1%}'
+        }).background_gradient(subset=['Avg_Response_Hours'], cmap='RdYlGn_r'),
+        use_container_width=True,
+        height=400
     )
-    st.plotly_chart(fig_trends, use_container_width=True)
 
 # TAB 2: NEIGHBORHOODS
 with tab2:
-    st.subheader("📍 Neighborhood Performance Comparison")
+    st.subheader("📍 Neighborhood Comparison")
     
     # Filters
     col1, col2 = st.columns([3, 1])
@@ -154,7 +153,7 @@ with tab2:
     
     # Filter data
     if search:
-        filtered_df = df_neighborhoods[df_neighborhoods['Neighborhood'].str.contains(search, case=False)]
+        filtered_df = df_neighborhoods[df_neighborhoods['Neighborhood'].str.contains(search, case=False, na=False)]
     else:
         filtered_df = df_neighborhoods
     
@@ -165,94 +164,58 @@ with tab2:
         filtered_df.style.format({
             'Total_Requests': '{:,.0f}',
             'Avg_Response_Hours': '{:.1f}',
-            'Resolution_Rate': '{:.1%}',
-            'Median_Response_Hours': '{:.1f}'
+            'Resolution_Rate': '{:.1%}'
         }).background_gradient(subset=['Avg_Response_Hours'], cmap='RdYlGn_r'),
         use_container_width=True,
         height=400
     )
     
-    # Response time distribution
-    st.subheader("⏱️ Response Time Distribution")
-    fig_response = px.box(
-        filtered_df,
-        y='Avg_Response_Hours',
-        x='Neighborhood',
-        points='all',
-        color='Neighborhood',
-        labels={'Avg_Response_Hours': 'Response Time (hours)'}
-    )
-    fig_response.update_layout(showlegend=False, height=400)
-    fig_response.update_xaxes(tickangle=45)
-    st.plotly_chart(fig_response, use_container_width=True)
-
-# TAB 3: TRENDS
-with tab3:
-    st.subheader("📈 Temporal Patterns")
-    
+    # Charts
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("**🕐 Requests by Hour of Day**")
-        hourly = df_temporal.groupby('hour')['request_count'].sum().reset_index()
-        fig_hourly = px.bar(
-            hourly,
-            x='hour',
-            y='request_count',
-            labels={'hour': 'Hour of Day', 'request_count': 'Total Requests'},
-            color='request_count',
-            color_continuous_scale='Blues'
+        st.markdown("**Response Time by Neighborhood**")
+        fig1 = px.bar(
+            filtered_df.sort_values('Avg_Response_Hours'),
+            x='Avg_Response_Hours',
+            y='Neighborhood',
+            orientation='h',
+            color='Avg_Response_Hours',
+            color_continuous_scale='RdYlGn_r'
         )
-        fig_hourly.update_layout(showlegend=False, height=300)
-        st.plotly_chart(fig_hourly, use_container_width=True)
+        fig1.update_layout(height=400, showlegend=False)
+        st.plotly_chart(fig1, use_container_width=True)
     
     with col2:
-        st.markdown("**📅 Requests by Day of Week**")
-        day_names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-        daily = df_temporal.groupby('day_of_week')['request_count'].sum().reset_index()
-        daily['day_name'] = daily['day_of_week'].apply(lambda x: day_names[x] if 0 <= x <= 6 else f"Day {x}")
-        fig_daily = px.bar(
-            daily,
-            x='day_name',
-            y='request_count',
-            labels={'day_name': 'Day of Week', 'request_count': 'Total Requests'},
-            color='request_count',
+        st.markdown("**Resolution Rate by Neighborhood**")
+        fig2 = px.bar(
+            filtered_df.sort_values('Resolution_Rate'),
+            x='Resolution_Rate',
+            y='Neighborhood',
+            orientation='h',
+            color='Resolution_Rate',
             color_continuous_scale='Greens'
         )
-        fig_daily.update_layout(showlegend=False, height=300)
-        st.plotly_chart(fig_daily, use_container_width=True)
-    
-    # Heatmap
-    st.markdown("**🔥 Request Heatmap: Hour × Day of Week**")
-    pivot = df_temporal.pivot_table(
-        values='request_count',
-        index='hour',
-        columns='day_of_week',
-        aggfunc='sum'
-    ).fillna(0)
-    
-    fig_heatmap = px.imshow(
-        pivot,
-        labels=dict(x="Day of Week", y="Hour of Day", color="Requests"),
-        x=[day_names[i] if i < 7 else f"Day {i}" for i in pivot.columns],
-        y=pivot.index,
-        color_continuous_scale='YlOrRd',
-        aspect='auto'
-    )
-    fig_heatmap.update_layout(height=500)
-    st.plotly_chart(fig_heatmap, use_container_width=True)
+        fig2.update_layout(height=400, showlegend=False)
+        st.plotly_chart(fig2, use_container_width=True)
 
-# TAB 4: AI ASSISTANT (Placeholder for now)
-with tab4:
-    st.subheader("🤖 AI-Powered Data Assistant")
-    st.info("💡 AI Assistant coming next! Ask questions about your 311 data in plain English.")
+# TAB 3: AI ASSISTANT (Placeholder)
+with tab3:
+    st.subheader("🤖 AI-Powered Assistant")
+    st.info("💡 AI Assistant will be added next! You'll be able to ask questions in natural language.")
     
-    st.markdown("**Example questions you'll be able to ask:**")
+    st.markdown("**Example questions (coming soon):**")
     st.markdown("""
-    - "Which neighborhood has the slowest response time for potholes?"
-    - "Show me request trends in Eastwood over the past 3 months"
-    - "What categories have the lowest resolution rates?"
-    - "Compare Downtown vs Northside service delivery"
+    - "Which neighborhood has the slowest response time?"
+    - "Show me trends in Eastwood"
+    - "Compare Downtown vs Northside"
+    - "What's the average response time for potholes?"
     """)
     
-    st.warning("⏳ This feature will be implemented next using Claude API")
+    # Preview of chatbot UI
+    st.text_input("Ask a question (preview)", placeholder="e.g., Which neighborhoods need the most attention?", disabled=True)
+    st.button("🚀 Ask", disabled=True)
+
+# Footer
+st.markdown("---")
+st.caption("🏙️ Syracuse 311 Analytics Dashboard | Data updated in real-time from Databricks")

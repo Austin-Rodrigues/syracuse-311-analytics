@@ -69,4 +69,5 @@ temp/
 *.joblib
 
 # Streamlit
-.streamlit/secrets.toml
+.streamlit/secrets.toml.streamlit/
+dashboard/.streamlit/

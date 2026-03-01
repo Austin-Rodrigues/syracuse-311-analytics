@@ -5,17 +5,22 @@ import pandas as pd
 import streamlit as st
 from .db_connector import DatabricksConnector
 
-@st.cache_data(ttl=3600)  # Cache for 1 hour
-def load_gold_neighborhoods():
-    """Load neighborhood performance data from Gold layer"""
+@st.cache_data(ttl=3600)
+def load_gold_categories():
+    """Load category performance data from Gold layer"""
     
     query = """
     SELECT 
-        neighborhood,
+        Category,
         total_requests,
+        closed_requests,
+        open_requests,
         avg_response_hours,
-        percent_closed
-    FROM workspace.syracuse_project.gold_neighborhood_performance
+        median_response_hours,
+        percent_closed,
+        percent_acknowledged,
+        primary_agency
+    FROM workspace.syracuse_project.gold_category_performance
     ORDER BY total_requests DESC
     """
     
@@ -24,30 +29,68 @@ def load_gold_neighborhoods():
     connector.close()
     
     if df is not None:
-        # Rename columns to match app expectations (Title Case)
+        # Rename for consistency
         df = df.rename(columns={
-            'neighborhood': 'Neighborhood',
+            'Category': 'Category',
             'total_requests': 'Total_Requests',
+            'closed_requests': 'Closed_Requests',
+            'open_requests': 'Open_Requests',
             'avg_response_hours': 'Avg_Response_Hours',
-            'percent_closed': 'Resolution_Rate'
+            'median_response_hours': 'Median_Response_Hours',
+            'percent_closed': 'Resolution_Rate',
+            'percent_acknowledged': 'Acknowledgment_Rate',
+            'primary_agency': 'Primary_Agency'
         })
     
     return df
 
 @st.cache_data(ttl=3600)
-def load_request_trends():
-    """Load request volume trends over time"""
+def load_gold_agencies():
+    """Load agency performance data"""
     
     query = """
     SELECT 
-        DATE(created_at) as date,
-        COUNT(*) as request_count,
-        AVG(response_time_hours) as avg_response_hours,
-        COUNT(CASE WHEN is_closed THEN 1 END) as closed_count
-    FROM workspace.syracuse_project.silver_requests
-    WHERE created_at >= DATE_SUB(CURRENT_DATE(), 365)
-    GROUP BY DATE(created_at)
-    ORDER BY date
+        Agency_Name,
+        total_requests,
+        closed_requests,
+        avg_response_hours,
+        percent_closed,
+        categories_handled
+    FROM workspace.syracuse_project.gold_agency_performance
+    ORDER BY total_requests DESC
+    """
+    
+    connector = DatabricksConnector()
+    df = connector.query(query)
+    connector.close()
+    
+    if df is not None:
+        df = df.rename(columns={
+            'Agency_Name': 'Agency',
+            'total_requests': 'Total_Requests',
+            'closed_requests': 'Closed_Requests',
+            'avg_response_hours': 'Avg_Response_Hours',
+            'percent_closed': 'Resolution_Rate',
+            'categories_handled': 'Categories_Handled'
+        })
+    
+    return df
+
+@st.cache_data(ttl=3600)
+def load_gold_daily_trends():
+    """Load daily trend data"""
+    
+    query = """
+    SELECT 
+        request_date,
+        total_requests,
+        closed_requests,
+        avg_response_hours,
+        categories_active,
+        agencies_active
+    FROM workspace.syracuse_project.gold_daily_trends
+    WHERE request_date >= DATE_SUB(CURRENT_DATE(), 365)
+    ORDER BY request_date
     """
     
     connector = DatabricksConnector()
@@ -57,40 +100,17 @@ def load_request_trends():
     return df
 
 @st.cache_data(ttl=3600)
-def load_category_distribution():
-    """Load request distribution by category"""
-    
-    query = """
-    SELECT 
-        Category,
-        COUNT(*) as request_count,
-        AVG(response_time_hours) as avg_response_hours,
-        AVG(CASE WHEN is_closed THEN 1.0 ELSE 0.0 END) as resolution_rate
-    FROM workspace.syracuse_project.silver_requests
-    GROUP BY Category
-    ORDER BY request_count DESC
-    LIMIT 15
-    """
-    
-    connector = DatabricksConnector()
-    df = connector.query(query)
-    connector.close()
-    
-    return df
-
-@st.cache_data(ttl=3600)
-def load_temporal_patterns():
-    """Load patterns by hour and day of week"""
+def load_gold_hourly_patterns():
+    """Load hourly pattern data"""
     
     query = """
     SELECT 
         created_hour as hour,
-        created_day_of_week as day_of_week,
-        COUNT(*) as request_count,
-        AVG(response_time_hours) as avg_response_hours
-    FROM workspace.syracuse_project.silver_requests
-    GROUP BY created_hour, created_day_of_week
-    ORDER BY day_of_week, hour
+        day_name,
+        total_requests,
+        avg_response_hours
+    FROM workspace.syracuse_project.gold_hourly_patterns
+    ORDER BY created_hour, day_name
     """
     
     connector = DatabricksConnector()
